@@ -1,0 +1,56 @@
+name: Matrix Build with Artifacts
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build (node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # at least 3 variants
+        node-version: ['14', '16', '18']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: matrix-3b32760
+        # This step must contain the identifier matrix-3b32760
+        run: |
+          echo "matrix-3b32760 - running build for Node.js ${{ matrix.node-version }}"
+          echo "Variant: node-${{ matrix.node-version }}" > variant-info.txt
+
+      - name: Install dependencies (if any)
+        run: |
+          # No dependencies required for this demo; keep this step to mirror real builds
+          node --version
+          npm --version || true
+
+      - name: Generate unique build artifact
+        run: |
+          ARTFILE="build-3b32760-node-${{ matrix.node-version }}.txt"
+          echo "Build artifact for Node.js ${{ matrix.node-version }}" > "$ARTFILE"
+          echo "Repository: $GITHUB_REPOSITORY" >> "$ARTFILE"
+          echo "Run ID: $GITHUB_RUN_ID" >> "$ARTFILE"
+          echo "Matrix variant: node-${{ matrix.node-version }}" >> "$ARTFILE"
+          # show file size for debugging
+          ls -l "$ARTFILE"
+        shell: bash
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          # Must follow prefix build-3b32760-<variant>
+          name: build-3b32760-node-${{ matrix.node-version }}
+          path: build-3b32760-node-${{ matrix.node-version }}.txt
